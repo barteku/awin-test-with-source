@@ -3,6 +3,8 @@ namespace Awin\Tools\CoffeeBreak\Entity;
 
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
+
 
 /**
  * @ORM\Table("staff_member")
@@ -12,32 +14,44 @@ class StaffMember
 {
     /**
      * @ORM\Column(name="id", type="integer")
-     * @ORM\id
+     * @ORM\Id
      * @ORM\GeneratedValue(strategy="AUTO")
      * @var int
      */
     private $id;
     /**
-     * @ORM\Column(name="name", length="255")
+     * @ORM\Column(name="name", length=255)
+     * @Assert\NotBlank
      * @var string
      */
     private $name;
     /**
-     * @ORM\Column(name="email", length="255")
+     * @ORM\Column(name="email", length=255)
+     * @Assert\NotBlank
      * @var string
      */
     private $email;
     /**
-     * @ORM\Column(name="hip_chat_identifier", length="255")
+     * @ORM\Column(name="hip_chat_identifier", length=255, nullable=true)
      * @var string
      */
     private $SlackIdentifier;
 
     /**
-     * @ORM\OneToMany(targetEntity="Awin\Tools\CoffeeBreak\Entity\CoffeeBreakPreference", mappedBy("requestedBy")
+     * @ORM\OneToMany(targetEntity="CoffeeBreakPreference", mappedBy="requestedBy", cascade={"all"})
      * @var ArrayCollection
      */
     private $preferences;
+
+    /**
+     * @var OfficeTeam $team
+     *
+     * @ORM\ManyToOne(targetEntity="OfficeTeam", inversedBy="teamMembers")
+     * @Assert\NotBlank
+     */
+    private $team;
+
+
 
     public function __construct()
     {
@@ -88,7 +102,7 @@ class StaffMember
     /**
      * @param string $SlackIdentifier
      */
-    public function setSlackIdentifier(string $SlackIdentifier)
+    public function setSlackIdentifier(string $SlackIdentifier = null)
     {
         $this->SlackIdentifier = $SlackIdentifier;
     }
@@ -105,5 +119,14 @@ class StaffMember
     public function setPreferences($preferences)
     {
         $this->preferences = $preferences;
+    }
+
+    public function setTeam(OfficeTeam $team){
+        $this->team = $team;
+        return $this;
+    }
+
+    public function getTeam(){
+        return $this->team;
     }
 }

@@ -1,0 +1,14 @@
+# This file is the entry point to configure your own HTTP routes.
+# Files in the routes/ subdirectory configure the routes for your dependencies.
+
+today:
+  path: /today.{_format}
+  defaults: { _controller: 'Awin\Tools\CoffeeBreak\Controller\CoffeeBreakPreferenceController::todayAction', "_format": "html" }
+  requirements:
+    _format:  html|json|xml
+
+send_notification:
+  path: /notification/{staffMemberId}
+  defaults: { _controller: 'Awin\Tools\CoffeeBreak\Controller\CoffeeBreakPreferenceController::notifyStaffMemberAction' }
+  requirements:
+    staffMemberId: '\d+'

@@ -1,26 +1,27 @@
 <?php
 namespace Awin\Tools\CoffeeBreak\Controller;
 
-use Awin\Tools\CoffeeBreak\Repository\CoffeeBreakPreferenceRepository;
-use Awin\Tools\CoffeeBreak\Repository\StaffMemberRepository;
-use Awin\Tools\CoffeeBreak\Services\SlackNotifier;
+
+use App\Entity\OfficeTeamInterface;
+use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
-class CoffeeBreakPreferenceController
+class CoffeeBreakPreferenceController extends Controller
 {
-    public function __construct()
-    {
-    }
 
     /**
      * Publishes the list of preferences in the requested format
      */
-    public function todayAction($format = "html")
+    public function todayAction(Request $request)
     {
-        $repository = new CoffeeBreakPreferenceRepository();
-        $t = $repository->getPreferencesForToday();
+        $team = $request->get('team', 'developers');
+        $format = $request->get('_format', 'html');
 
-        $formattedPreferences = [];
+
+        $t = $this->get("app.coffee_break_preferences.manager")->getPreferencesForToday($team);
+
+
         $contentType = "text/html";
 
         switch ($format) {
@@ -35,11 +36,12 @@ class CoffeeBreakPreferenceController
                 break;
 
             default:
-                $formattedPreferences[] = $this->getHtmlForResponse($t);
+                $responseContent = $this->getHtmlForResponse($t);
         }
 
         return new Response($responseContent, 200, ['Content-Type' => $contentType]);
     }
+
 
     /**
      * @param int $staffMemberId
@@ -47,17 +49,25 @@ class CoffeeBreakPreferenceController
      */
     public function notifyStaffMemberAction($staffMemberId)
     {
-        $staffMemberRepository = new StaffMemberRepository();
-        $staffMember = $staffMemberRepository->find($staffMemberId);
+        $slackNotifier = $this->get('slack.notifier');
+        $emailNotifier = $this->get('email.notifier');
 
-        $repository = new CoffeeBreakPreferenceRepository();
-        $p = $repository->getPreferenceFor($staffMemberId, new \DateTime());
+        $t = $this->get("app.coffee_break_preferences.manager")->getPreferencesForTodayForUser($staffMemberId);
+        $notificationSent = false;
 
-        $notifier = new SlackNotifier();
-        $notificationSent = $notifier->notifyStaffMember($staffMember, $p);
+        foreach ($t as $preference){
+            if($preference->getRequestedBy()->getTeam()->getPreferredContactService() === OfficeTeamInterface::CONTACT_SERVICE_SLACK){
+                $notificationSent = $slackNotifier->notifyStaffMember($preference->getRequestedBy(), $preference);
+            }else{
+                $notificationSent = $emailNotifier->notifyStaffMember($preference->getRequestedBy(), $preference);
+            }
+
+        }
+
 
         return new Response($notificationSent ? "OK" : "NOT OK", 200);
     }
+
 
     private function getJsonForResponse(array $preferences)
     {
@@ -85,6 +95,7 @@ class CoffeeBreakPreferenceController
     {
         $html = "<ul>";
         foreach ($preferences as $preference) {
+
             $html .= $preference->getAsListElement();
         }
         $html .= "</ul>";
