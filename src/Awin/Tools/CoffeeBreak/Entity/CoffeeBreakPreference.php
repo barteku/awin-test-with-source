@@ -4,12 +4,15 @@ namespace Awin\Tools\CoffeeBreak\Entity;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
- * @ORM\Table("coffee_break_preference")
+ * Class CoffeeBreakPreference
+ * @package App\Entity
+ *
  * @ORM\Entity(repositoryClass="Awin\Tools\CoffeeBreak\Repository\CoffeeBreakPreferenceRepository")
+ * @ORM\Table("coffee_break_preference")
+ *
  */
 class CoffeeBreakPreference
 {
-
     const TYPES = ["food", "drink"];
     const DRINK_TYPES = ["coffee", "tea"];
     const FOOD_TYPES = ["sandwich", "crisps", "toast"];
@@ -35,7 +38,7 @@ class CoffeeBreakPreference
     private $subType;
 
     /**
-     * @ORM\ManyToOne(targetEntity="Awin\Tools\CoffeeBreak\Entity\StaffMember", inversedBy="preferences")
+     * @ORM\ManyToOne(targetEntity="StaffMember", inversedBy="preferences")
      * @ORM\JoinColumn(name="requested_by", referencedColumnName="id")
      * @var StaffMember
      */
@@ -65,11 +68,13 @@ class CoffeeBreakPreference
             }
         } else {
             if (!in_array($subType, self::DRINK_TYPES)) {
+                var_dump($subType);;die;
                 throw new \InvalidArgumentException;
             }
         }
 
         $this->type = $type;
+        $this->subType = $subType;
 
         $this->requestedBy = $requestedBy;
         $this->setDetails($details);
@@ -147,7 +152,7 @@ class CoffeeBreakPreference
             $this->details["number_of_sugars"] = isset($details["number_of_sugars"]) ?? 0;
             $this->details["milk"] = isset($details["milk"]) ?? false;
         } else {
-            $this->details["flavour"] = isset($details["flavour"]) ?? "don't mind";
+            $this->details["flavour"] = isset($details["flavour"]) ? $details["flavour"] : "don't mind";
         }
     }
 
