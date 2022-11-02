@@ -1,0 +1,24 @@
+{
+    "name": "awin/coffee-break",
+    "description": "A codetest excercise",
+    "type": "project",
+    "require": {
+        "doctrine/orm": "^2.5",
+        "symfony/http-foundation": "^3.4",
+      "ext-simplexml": "*"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^6.5"
+    },
+    "authors": [
+        {
+            "name": "Kit Barclay",
+            "email": "kit.barclay@awin.com"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "Awin\\": "src/Awin"
+        }
+    }
+}
